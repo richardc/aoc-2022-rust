@@ -8,6 +8,16 @@ enum Round {
 }
 
 impl Round {
+    fn new(s: &str) -> Self {
+        use Round::*;
+        match s {
+            "X" => Lose,
+            "Y" => Draw,
+            "Z" => Win,
+            _ => unreachable!("bad round char"),
+        }
+    }
+
     fn score(&self) -> usize {
         use Round::*;
         match self {
@@ -18,7 +28,7 @@ impl Round {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 enum Turn {
     Rock,
     Paper,
@@ -46,6 +56,17 @@ impl Turn {
         }
     }
 
+    fn aiming_to(&self, outcome: &Round) -> Self {
+        use Round::*;
+        use Turn::*;
+        match (outcome, self) {
+            (Draw, same) => *same,
+            (Win, Scissors) | (Lose, Paper) => Rock,
+            (Win, Rock) | (Lose, Scissors) => Paper,
+            (Win, Paper) | (Lose, Rock) => Scissors,
+        }
+    }
+
     fn score(&self) -> usize {
         use Turn::*;
         match self {
@@ -70,9 +91,19 @@ pub fn part_one(input: &str) -> Option<usize> {
     )
 }
 
-pub fn part_two(input: &str) -> Option<u32> {
-    _ = input;
-    None
+pub fn part_two(input: &str) -> Option<usize> {
+    Some(
+        input
+            .lines()
+            .map(|l| {
+                let (them, target) = l.split_once(' ').unwrap();
+                let them = Turn::new(them);
+                let target = Round::new(target);
+                let mine = them.aiming_to(&target);
+                target.score() + mine.score()
+            })
+            .sum(),
+    )
 }
 
 #[cfg(test)]
@@ -88,6 +119,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(12));
     }
 }
