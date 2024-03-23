@@ -1,5 +1,6 @@
 advent_of_code::solution!(3);
 
+use itertools::Itertools;
 use std::collections::HashSet;
 
 fn priority(b: u8) -> u8 {
@@ -23,8 +24,21 @@ pub fn part_one(input: &str) -> Option<u32> {
 }
 
 pub fn part_two(input: &str) -> Option<u32> {
-    _ = input;
-    None
+    Some(
+        input
+            .lines()
+            .tuples()
+            .map(|(a, b, c)| {
+                let a: HashSet<u8> = HashSet::from_iter(a.bytes());
+                let b: HashSet<u8> = HashSet::from_iter(b.bytes());
+                let c: HashSet<u8> = HashSet::from_iter(c.bytes());
+                let a_b: HashSet<u8> = HashSet::from_iter(a.intersection(&b).copied());
+                a_b.intersection(&c)
+                    .map(|&b| priority(b) as u32)
+                    .sum::<u32>()
+            })
+            .sum(),
+    )
 }
 
 #[cfg(test)]
@@ -51,6 +65,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(70));
     }
 }
