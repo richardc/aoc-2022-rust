@@ -16,6 +16,10 @@ impl Range {
     fn contains(&self, other: &Self) -> bool {
         self.start >= other.start && self.end <= other.end
     }
+
+    fn overlaps(&self, other: &Self) -> bool {
+        self.start >= other.start && self.start <= other.end
+    }
 }
 
 pub fn part_one(input: &str) -> Option<usize> {
@@ -33,9 +37,19 @@ pub fn part_one(input: &str) -> Option<usize> {
     )
 }
 
-pub fn part_two(input: &str) -> Option<u32> {
-    _ = input;
-    None
+pub fn part_two(input: &str) -> Option<usize> {
+    Some(
+        input
+            .lines()
+            .filter(|l| {
+                let (a, b) = l.split_once(',').unwrap();
+                let a = Range::new(a);
+                let b = Range::new(b);
+
+                a.overlaps(&b) || b.overlaps(&a)
+            })
+            .count(),
+    )
 }
 
 #[cfg(test)]
@@ -51,6 +65,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(4));
     }
 }
