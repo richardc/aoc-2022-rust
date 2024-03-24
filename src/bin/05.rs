@@ -34,7 +34,7 @@ impl Crane {
         let mut next = 0;
         let indexes: HashMap<usize, usize> =
             HashMap::from_iter(indexes.as_bytes().iter().enumerate().filter_map(|(i, b)| {
-                if matches!(b, b'0'..=b'9') {
+                if b.is_ascii_digit() {
                     let idx = next;
                     next += 1;
                     Some((i, idx))
@@ -45,7 +45,7 @@ impl Crane {
         let mut columns: Vec<Vec<char>> = Vec::from_iter(indexes.iter().map(|_| Vec::new()));
         for l in lines {
             for (i, b) in l.as_bytes().iter().enumerate() {
-                if matches!(b, b'A'..=b'Z') {
+                if b.is_ascii_uppercase() {
                     let index = indexes.get(&i).unwrap();
                     columns[*index].push(*b as char);
                 }
