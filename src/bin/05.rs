@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use itertools::Itertools;
 
 struct Move {
-    count: u8,
+    count: usize,
     from: usize,
     to: usize,
 }
@@ -63,6 +63,14 @@ impl Crane {
         }
     }
 
+    fn run_again(&mut self) {
+        for m in &self.moves {
+            let len = self.columns[m.from - 1].len();
+            let top = self.columns[m.from - 1].split_off(len - m.count);
+            self.columns[m.to - 1].extend(top);
+        }
+    }
+
     fn column_string(&self) -> String {
         String::from_iter(self.columns.iter().filter_map(|c| c.last()))
     }
@@ -74,9 +82,10 @@ pub fn part_one(input: &str) -> Option<String> {
     Some(crane.column_string())
 }
 
-pub fn part_two(input: &str) -> Option<u32> {
-    _ = input;
-    None
+pub fn part_two(input: &str) -> Option<String> {
+    let mut crane = Crane::new(input);
+    crane.run_again();
+    Some(crane.column_string())
 }
 
 #[cfg(test)]
@@ -92,6 +101,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some("MCD".to_string()));
     }
 }
