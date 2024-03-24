@@ -54,7 +54,7 @@ impl Crane {
         Self { columns, moves }
     }
 
-    fn run_once(&mut self) {
+    fn cratemover_9000(&mut self) {
         for m in &self.moves {
             for _ in 0..m.count {
                 let top = self.columns[m.from - 1].pop().unwrap();
@@ -63,7 +63,7 @@ impl Crane {
         }
     }
 
-    fn run_again(&mut self) {
+    fn cratemover_9001(&mut self) {
         for m in &self.moves {
             let len = self.columns[m.from - 1].len();
             let top = self.columns[m.from - 1].split_off(len - m.count);
@@ -78,13 +78,13 @@ impl Crane {
 
 pub fn part_one(input: &str) -> Option<String> {
     let mut crane = Crane::new(input);
-    crane.run_once();
+    crane.cratemover_9000();
     Some(crane.column_string())
 }
 
 pub fn part_two(input: &str) -> Option<String> {
     let mut crane = Crane::new(input);
-    crane.run_again();
+    crane.cratemover_9001();
     Some(crane.column_string())
 }
 
