@@ -1,6 +1,7 @@
 advent_of_code::solution!(5);
 
 use std::collections::HashMap;
+use std::marker::PhantomData;
 
 use itertools::Itertools;
 
@@ -20,12 +21,21 @@ impl Move {
     }
 }
 
-struct Crane {
+trait Mover {}
+
+struct CrateMover9000 {}
+impl Mover for CrateMover9000 {}
+
+struct CrateMover9001 {}
+impl Mover for CrateMover9001 {}
+
+struct Crane<M: Mover> {
     columns: Vec<Vec<char>>,
     moves: Vec<Move>,
+    mover: PhantomData<M>,
 }
 
-impl Crane {
+impl<M: Mover> Crane<M> {
     fn new(s: &str) -> Self {
         let (picture, moves) = s.split_once("\n\n").unwrap();
         let moves = moves.lines().map(Move::new).collect_vec();
@@ -51,23 +61,11 @@ impl Crane {
                 }
             }
         }
-        Self { columns, moves }
-    }
-
-    fn cratemover_9000(&mut self) {
-        for m in &self.moves {
-            for _ in 0..m.count {
-                let top = self.columns[m.from - 1].pop().unwrap();
-                self.columns[m.to - 1].push(top);
-            }
-        }
-    }
-
-    fn cratemover_9001(&mut self) {
-        for m in &self.moves {
-            let len = self.columns[m.from - 1].len();
-            let top = self.columns[m.from - 1].split_off(len - m.count);
-            self.columns[m.to - 1].extend(top);
+        let mover = PhantomData;
+        Self {
+            columns,
+            moves,
+            mover,
         }
     }
 
@@ -76,15 +74,36 @@ impl Crane {
     }
 }
 
+impl Crane<CrateMover9000> {
+    fn moves(&mut self) {
+        for m in &self.moves {
+            for _ in 0..m.count {
+                let top = self.columns[m.from - 1].pop().unwrap();
+                self.columns[m.to - 1].push(top);
+            }
+        }
+    }
+}
+
+impl Crane<CrateMover9001> {
+    fn moves(&mut self) {
+        for m in &self.moves {
+            let len = self.columns[m.from - 1].len();
+            let top = self.columns[m.from - 1].split_off(len - m.count);
+            self.columns[m.to - 1].extend(top);
+        }
+    }
+}
+
 pub fn part_one(input: &str) -> Option<String> {
-    let mut crane = Crane::new(input);
-    crane.cratemover_9000();
+    let mut crane = Crane::<CrateMover9000>::new(input);
+    crane.moves();
     Some(crane.column_string())
 }
 
 pub fn part_two(input: &str) -> Option<String> {
-    let mut crane = Crane::new(input);
-    crane.cratemover_9001();
+    let mut crane = Crane::<CrateMover9001>::new(input);
+    crane.moves();
     Some(crane.column_string())
 }
 
