@@ -1,5 +1,6 @@
 advent_of_code::solution!(7);
 
+use itertools::Itertools;
 use std::collections::HashMap;
 
 type Path = String;
@@ -63,7 +64,6 @@ impl Filesystem {
 
             directories.entry(full_path).and_modify(|e| e.push(file));
         }
-        dbg!(&directories);
         Self { directories }
     }
 
@@ -92,8 +92,13 @@ pub fn part_one(input: &str) -> Option<usize> {
 }
 
 pub fn part_two(input: &str) -> Option<usize> {
-    _ = input;
-    None
+    let fs = Filesystem::new(input);
+    let unused = 70000000 - fs.directory_size(&String::from("/"));
+    fs.directory_sizes()
+        .iter()
+        .sorted()
+        .find(|&s| unused + s > 30000000)
+        .copied()
 }
 
 #[cfg(test)]
@@ -109,6 +114,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(24933642));
     }
 }
