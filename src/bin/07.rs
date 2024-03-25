@@ -29,18 +29,17 @@ impl Filesystem {
         let mut directories: HashMap<Path, Vec<Dirent>> = HashMap::new();
         let mut path = Vec::new();
         for line in input.lines() {
-            if line.starts_with("$ cd ") {
-                let args = &line[5..];
-                match args {
+            if let Some(arg) = line.strip_prefix("$ cd ") {
+                match arg {
                     ".." => {
                         path.pop();
                     }
                     "/" => path.clear(),
-                    _ => path.push(args),
+                    _ => path.push(arg),
                 }
                 continue;
             }
-            if line.starts_with("$") {
+            if line.starts_with('$') {
                 continue;
             }
 
