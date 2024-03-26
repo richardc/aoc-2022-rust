@@ -37,28 +37,36 @@ impl std::ops::AddAssign for Point {
 
 #[derive(Debug, Default)]
 struct Rope {
-    head: Point,
-    tail: Point,
+    segments: Vec<Point>,
     tails: HashSet<Point>,
 }
 
 impl Rope {
-    fn new() -> Self {
-        let mut rope = Self::default();
-        rope.tails.insert(rope.tail);
-        rope
+    fn new(length: usize) -> Self {
+        Self {
+            segments: Vec::from_iter(std::iter::repeat(Point::default()).take(length + 1)),
+            tails: HashSet::from_iter([Point::default()]),
+        }
     }
 
     fn move_head(&mut self, step: &Step) {
         for _ in 0..step.step {
-            self.head += step.direction;
-            self.drag_tail();
+            // Move the head
+            self.segments[0] += step.direction;
+
+            // For each pair, everyone gets to be the boss once
+            for i in 0..(self.segments.len() - 1) {
+                Self::drag_segment(self.segments[i], &mut self.segments[i + 1]);
+            }
+
+            // And we're just after the last one
+            self.tails.insert(self.segments[self.segments.len() - 1]);
         }
     }
 
-    fn drag_tail(&mut self) {
-        let mut x_diff = self.head.0 - self.tail.0;
-        let mut y_diff = self.head.1 - self.tail.1;
+    fn drag_segment(head: Point, tail: &mut Point) {
+        let mut x_diff = head.0 - tail.0;
+        let mut y_diff = head.1 - tail.1;
         if y_diff.abs() <= 1 && x_diff.abs() <= 1 {
             // Already touching
             return;
@@ -66,25 +74,23 @@ impl Rope {
 
         // We're over 2 steps away, so we slide in the lesser distance as we close the gap
         if x_diff.abs() > 2 {
-            self.tail.1 = self.head.1;
+            tail.1 = head.1;
             x_diff = 0;
         }
 
         if y_diff.abs() > 2 {
-            self.tail.0 = self.head.0;
+            tail.0 = head.0;
             y_diff = 0;
         }
 
         // slide at most one closer
-        self.tail.0 += x_diff.signum();
-        self.tail.1 += y_diff.signum();
-
-        self.tails.insert(self.tail);
+        tail.0 += x_diff.signum();
+        tail.1 += y_diff.signum();
     }
 }
 
 pub fn part_one(input: &str) -> Option<usize> {
-    let mut rope = Rope::new();
+    let mut rope = Rope::new(1);
     let steps = input.lines().map(Step::new).collect_vec();
     for s in &steps {
         rope.move_head(s);
@@ -92,8 +98,13 @@ pub fn part_one(input: &str) -> Option<usize> {
     Some(rope.tails.len())
 }
 
-pub fn part_two(input: &str) -> Option<u32> {
-    None
+pub fn part_two(input: &str) -> Option<usize> {
+    let mut rope = Rope::new(9);
+    let steps = input.lines().map(Step::new).collect_vec();
+    for s in &steps {
+        rope.move_head(s);
+    }
+    Some(rope.tails.len())
 }
 
 #[cfg(test)]
@@ -107,8 +118,16 @@ mod tests {
     }
 
     #[test]
-    fn test_part_two() {
+    fn test_part_two_original() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(1));
+    }
+
+    #[test]
+    fn test_part_two_two() {
+        let result = part_two(&advent_of_code::template::read_file_part(
+            "examples", DAY, 2,
+        ));
+        assert_eq!(result, Some(36));
     }
 }
