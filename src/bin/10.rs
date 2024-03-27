@@ -16,15 +16,15 @@ pub fn part_one(input: &str) -> Option<i32> {
         .collect_vec();
 
     let mut x = 1;
-    let mut points = Vec::new();
+    let mut total = 0;
     for (i, v) in (1..=220).zip(program.iter().cycle()) {
         if (i - 20) % 40 == 0 {
-            points.push(i * x);
+            total += i * x;
         }
         x += v;
     }
 
-    Some(points.iter().sum())
+    Some(total)
 }
 
 pub fn part_two(input: &str) -> Option<u32> {
