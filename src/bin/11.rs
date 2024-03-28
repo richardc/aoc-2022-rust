@@ -3,16 +3,18 @@ use std::collections::VecDeque;
 
 advent_of_code::solution!(11);
 
+type Value = u32;
+
 #[derive(Debug, Default)]
 enum Operation {
     #[default]
     Square,
-    Add(u32),
-    Mul(u32),
+    Add(Value),
+    Mul(Value),
 }
 
 impl Operation {
-    fn apply(&self, old: u32) -> u32 {
+    fn apply(&self, old: Value) -> Value {
         use Operation::*;
         match self {
             Add(value) => old + value,
@@ -24,9 +26,9 @@ impl Operation {
 
 #[derive(Debug, Default)]
 struct Monkey {
-    items: VecDeque<u32>,
+    items: VecDeque<Value>,
     operation: Operation,
-    test: u32,
+    test: Value,
     matches: usize,
     otherwise: usize,
     inspected: usize,
@@ -41,7 +43,7 @@ impl Monkey {
             if let Some(items) = line.strip_prefix("Starting items: ") {
                 monkey
                     .items
-                    .extend(items.split(", ").map(|i| i.parse::<u32>().unwrap()));
+                    .extend(items.split(", ").map(|i| i.parse::<Value>().unwrap()));
             }
 
             if let Some(operation) = line.strip_prefix("Operation: new = old") {
