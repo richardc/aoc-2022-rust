@@ -3,7 +3,7 @@ use std::collections::VecDeque;
 
 advent_of_code::solution!(11);
 
-type Value = u32;
+type Value = u64;
 
 #[derive(Debug, Default)]
 enum Operation {
