@@ -78,22 +78,28 @@ impl Monkey {
 #[derive(Debug)]
 struct Puzzle {
     monkeys: Vec<Monkey>,
+    limit: Value,
 }
 
 impl Puzzle {
     fn new(s: &str) -> Self {
-        let monkeys = s.split("\n\n").map(Monkey::new).collect();
-        Self { monkeys }
+        let monkeys = s.split("\n\n").map(Monkey::new).collect_vec();
+        let limit = monkeys.iter().map(|m| m.test).product();
+        Self { monkeys, limit }
     }
 
-    fn step(&mut self) {
+    fn step(&mut self, calming: bool) {
         for i in 0..self.monkeys.len() {
             let monkey = &mut self.monkeys[i];
             let mut throw = VecDeque::new();
             while let Some(value) = monkey.items.pop_front() {
                 monkey.inspected += 1;
                 let value = monkey.operation.apply(value);
-                let value = value / 3;
+                let value = if calming {
+                    value / 3
+                } else {
+                    value % self.limit
+                };
                 let target = if value % monkey.test == 0 {
                     monkey.matches
                 } else {
@@ -123,14 +129,17 @@ impl Puzzle {
 pub fn part_one(input: &str) -> Option<usize> {
     let mut puzzle = Puzzle::new(input);
     for _ in 0..20 {
-        puzzle.step();
+        puzzle.step(true);
     }
     Some(puzzle.monkey_business())
 }
 
 pub fn part_two(input: &str) -> Option<usize> {
-    _ = input;
-    None
+    let mut puzzle = Puzzle::new(input);
+    for _ in 0..10_000 {
+        puzzle.step(false);
+    }
+    Some(puzzle.monkey_business())
 }
 
 #[cfg(test)]
@@ -146,6 +155,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(2_713_310_158));
     }
 }
