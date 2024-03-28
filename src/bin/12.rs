@@ -46,6 +46,16 @@ impl Maze {
             .expect("there will be a path");
         cost
     }
+
+    fn shortest_scenic_path(&self) -> usize {
+        self.cells
+            .items()
+            .filter_map(|((r, c), &height)| if height == 'a' { Some((r, c)) } else { None })
+            .filter_map(|start| dijkstra(&start, |&p| self.neighbours(p), |&p| p == self.end))
+            .map(|(_path, cost)| cost)
+            .min()
+            .expect("to find at least one")
+    }
 }
 
 pub fn part_one(input: &str) -> Option<usize> {
@@ -54,8 +64,8 @@ pub fn part_one(input: &str) -> Option<usize> {
 }
 
 pub fn part_two(input: &str) -> Option<usize> {
-    _ = input;
-    None
+    let maze = Maze::new(input);
+    Some(maze.shortest_scenic_path())
 }
 
 #[cfg(test)]
@@ -71,6 +81,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(29));
     }
 }
