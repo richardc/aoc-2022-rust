@@ -37,11 +37,7 @@ impl Packet {
 
 fn correct_order(left: &Packet, right: &Packet) -> bool {
     // Coorce None (we couldn't find a difference), to true (no difference)
-    if let Some(false) = correct_order_inner(left, right) {
-        false
-    } else {
-        true
-    }
+    !matches!(correct_order_inner(left, right), Some(false))
 }
 
 fn correct_order_inner(left: &Packet, right: &Packet) -> Option<bool> {
@@ -65,7 +61,6 @@ fn correct_order_inner(left: &Packet, right: &Packet) -> Option<bool> {
             }
         }
         (Integer(_), List(_)) => correct_order_inner(&List(vec![left.clone()]), right),
-
         (List(_), Integer(_)) => correct_order_inner(left, &List(vec![right.clone()])),
     }
 }
