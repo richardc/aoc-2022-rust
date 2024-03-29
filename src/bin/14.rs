@@ -84,15 +84,15 @@ impl Well {
                 if self.contents.contains_key(&right) {
                     // settle
                     self.contents.insert(start, Cell::Sand);
-                    return true;
+                    true
                 } else {
-                    return self.drop(right);
+                    self.drop(right)
                 }
             } else {
-                return self.drop(left);
+                self.drop(left)
             }
         } else {
-            return self.drop(below);
+            self.drop(below)
         }
     }
 }
