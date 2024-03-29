@@ -79,21 +79,18 @@ impl Well {
         let below = Point(start.0, start.1 + 1);
         let left = Point(start.0 - 1, start.1 + 1);
         let right = Point(start.0 + 1, start.1 + 1);
-        if self.contents.contains_key(&below) {
-            if self.contents.contains_key(&left) {
-                if self.contents.contains_key(&right) {
-                    // settle
-                    self.contents.insert(start, Cell::Sand);
-                    true
-                } else {
-                    self.drop(right)
-                }
-            } else {
-                self.drop(left)
-            }
-        } else {
-            self.drop(below)
+        if !self.contents.contains_key(&below) {
+            return self.drop(below);
         }
+        if !self.contents.contains_key(&left) {
+            return self.drop(left);
+        }
+        if !self.contents.contains_key(&right) {
+            return self.drop(right);
+        }
+        // settle
+        self.contents.insert(start, Cell::Sand);
+        true
     }
 }
 
