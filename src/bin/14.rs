@@ -25,6 +25,7 @@ impl Point {
 struct Well {
     contents: HashMap<Point, Cell>,
     lowest_block: i32,
+    hard_floor: Option<i32>,
 }
 
 impl Well {
@@ -54,6 +55,7 @@ impl Well {
         Self {
             contents,
             lowest_block,
+            hard_floor: None,
         }
     }
 
@@ -62,6 +64,18 @@ impl Well {
             // In freefall
             return false;
         }
+
+        if self.contents.contains_key(&start) {
+            return false;
+        }
+
+        if let Some(floor) = self.hard_floor {
+            if start.1 + 1 == floor {
+                self.contents.insert(start, Cell::Sand);
+                return true;
+            }
+        }
+
         let below = Point(start.0, start.1 + 1);
         let left = Point(start.0 - 1, start.1 + 1);
         let right = Point(start.0 + 1, start.1 + 1);
@@ -89,9 +103,19 @@ pub fn part_one(input: &str) -> Option<usize> {
     Some(well.contents.values().filter(|&v| *v == Cell::Sand).count())
 }
 
-pub fn part_two(input: &str) -> Option<u32> {
-    _ = input;
-    None
+impl Well {
+    fn add_floor(&mut self) {
+        let y = self.lowest_block + 2;
+        self.lowest_block += 2;
+        self.hard_floor = Some(y);
+    }
+}
+
+pub fn part_two(input: &str) -> Option<usize> {
+    let mut well = Well::new(input);
+    well.add_floor();
+    while well.drop(Point(500, 0)) {}
+    Some(well.contents.values().filter(|&v| *v == Cell::Sand).count())
 }
 
 #[cfg(test)]
@@ -107,6 +131,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(93));
     }
 }
