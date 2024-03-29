@@ -47,8 +47,8 @@ impl Ord for Packet {
         match (self, other) {
             (Integer(l), Integer(r)) => l.cmp(r),
             (List(l), List(r)) => {
-                for i in 0..(l.len().min(r.len())) {
-                    let ord = l[i].cmp(&r[i]);
+                for (l, r) in l.iter().zip(r.iter()) {
+                    let ord = l.cmp(r);
                     if ord != Ordering::Equal {
                         return ord;
                     }
