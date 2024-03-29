@@ -7,7 +7,7 @@ use nom::{
     multi::separated_list0, sequence::delimited, IResult,
 };
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 enum Packet {
     Integer(u32),
     List(Vec<Packet>),
@@ -35,34 +35,34 @@ impl Packet {
     }
 }
 
-fn correct_order(left: &Packet, right: &Packet) -> bool {
-    // Coorce None (we couldn't find a difference), to true (no difference)
-    !matches!(correct_order_inner(left, right), Some(false))
+impl PartialOrd for Packet {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
 }
 
-fn correct_order_inner(left: &Packet, right: &Packet) -> Option<bool> {
-    use Packet::*;
-    match (left, right) {
-        (Integer(l), Integer(r)) => match l.cmp(r) {
-            Ordering::Less => Some(true),
-            Ordering::Greater => Some(false),
-            Ordering::Equal => None,
-        },
-        (List(l), List(r)) => {
-            for i in 0..(l.len().min(r.len())) {
-                if let Some(decision) = correct_order_inner(&l[i], &r[i]) {
-                    return Some(decision);
+impl Ord for Packet {
+    fn cmp(&self, other: &Self) -> Ordering {
+        use Packet::*;
+        match (self, other) {
+            (Integer(l), Integer(r)) => l.cmp(r),
+            (List(l), List(r)) => {
+                for i in 0..(l.len().min(r.len())) {
+                    let ord = l[i].cmp(&r[i]);
+                    if ord != Ordering::Equal {
+                        return ord;
+                    }
                 }
+                l.len().cmp(&r.len())
             }
-            match l.len().cmp(&r.len()) {
-                Ordering::Less => Some(true),
-                Ordering::Greater => Some(false),
-                Ordering::Equal => None,
-            }
+            (Integer(_), List(_)) => List(vec![self.clone()]).cmp(other),
+            (List(_), Integer(_)) => self.cmp(&List(vec![other.clone()])),
         }
-        (Integer(_), List(_)) => correct_order_inner(&List(vec![left.clone()]), right),
-        (List(_), Integer(_)) => correct_order_inner(left, &List(vec![right.clone()])),
     }
+}
+
+fn correct_order(left: &Packet, right: &Packet) -> bool {
+    left.cmp(right) != Ordering::Greater
 }
 
 #[derive(Debug)]
@@ -99,9 +99,21 @@ pub fn part_one(input: &str) -> Option<usize> {
     Some(packets.correct_order())
 }
 
-pub fn part_two(input: &str) -> Option<u32> {
-    _ = input;
-    None
+pub fn part_two(input: &str) -> Option<usize> {
+    let mut packets: Vec<_> = input
+        .lines()
+        .filter(|l| !l.is_empty())
+        .map(Packet::new)
+        .collect();
+    let divider_one = Packet::new("[[2]]");
+    let divider_two = Packet::new("[[6]]");
+    packets.push(divider_one.clone());
+    packets.push(divider_two.clone());
+    packets.sort();
+    let first = packets.iter().position(|p| *p == divider_one).unwrap();
+    let second = packets.iter().position(|p| *p == divider_two).unwrap();
+
+    Some((first + 1) * (second + 1))
 }
 
 #[cfg(test)]
@@ -173,6 +185,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(140));
     }
 }
