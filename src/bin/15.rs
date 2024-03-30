@@ -34,7 +34,8 @@ fn sensor(input: &str) -> IResult<&str, (Point, Point)> {
 
 impl Sensors {
     fn new(s: &str) -> Self {
-        let sensors = s.lines().map(|l| sensor(l).unwrap().1).collect();
+        let mut sensors: Vec<(Point, Point)> = s.lines().map(|l| sensor(l).unwrap().1).collect();
+        sensors.sort_by_key(|s| s.0 .0);
         Self { sensors }
     }
 
