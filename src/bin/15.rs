@@ -1,6 +1,7 @@
 advent_of_code::solution!(15);
 
 use nom::{bytes::complete::tag, character::complete::i32, sequence::tuple, IResult};
+use range_set_blaze::CheckSortedDisjoint;
 use range_set_blaze::RangeSetBlaze;
 
 #[derive(Debug)]
@@ -38,8 +39,8 @@ impl Sensors {
         Self { sensors }
     }
 
-    fn excluded_cells(&self, y: i32) -> usize {
-        let mut excluded: RangeSetBlaze<i32> = RangeSetBlaze::new();
+    fn scanned_xs(&self, y: i32) -> RangeSetBlaze<i32> {
+        let mut scanned: RangeSetBlaze<i32> = RangeSetBlaze::new();
         for (sensor, beacon) in &self.sensors {
             let distance = sensor.manhattan(&beacon);
             let intersect = sensor.1 - y;
@@ -50,8 +51,13 @@ impl Sensors {
 
             let x_min = sensor.0 - (distance as i32 - intersect.abs()).abs();
             let x_max = sensor.0 + (distance as i32 - intersect.abs()).abs();
-            excluded.ranges_insert(x_min..=x_max);
+            scanned.ranges_insert(x_min..=x_max);
         }
+        scanned
+    }
+
+    fn excluded_cells(&self, y: i32) -> usize {
+        let mut excluded = self.scanned_xs(y);
 
         for (_, beacon) in &self.sensors {
             if beacon.1 == y {
@@ -61,6 +67,19 @@ impl Sensors {
 
         excluded.len()
     }
+
+    fn uncovered_slot_frequency(&self, dim: i32) -> usize {
+        let interested = RangeSetBlaze::from_sorted_disjoint(CheckSortedDisjoint::from([0..=dim]));
+        for y in 0..dim {
+            let scanned = self.scanned_xs(y);
+            let scanned = &interested & scanned;
+            if scanned.ranges_len() == 2 {
+                let x = scanned.ranges().next().unwrap().max().unwrap() + 1;
+                return x as usize * 4000000 + y as usize;
+            }
+        }
+        0
+    }
 }
 
 pub fn part_one(input: &str) -> Option<usize> {
@@ -68,9 +87,9 @@ pub fn part_one(input: &str) -> Option<usize> {
     Some(sensors.excluded_cells(2_000_000))
 }
 
-pub fn part_two(input: &str) -> Option<u32> {
-    let _sensors = Sensors::new(input);
-    None
+pub fn part_two(input: &str) -> Option<usize> {
+    let sensors = Sensors::new(input);
+    Some(sensors.uncovered_slot_frequency(4_000_000))
 }
 
 #[cfg(test)]
@@ -85,7 +104,7 @@ mod tests {
 
     #[test]
     fn test_part_two() {
-        let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        let sensors = Sensors::new(&advent_of_code::template::read_file("examples", DAY));
+        assert_eq!(sensors.uncovered_slot_frequency(20), 56_000_011);
     }
 }
