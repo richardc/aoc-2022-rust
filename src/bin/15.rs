@@ -69,28 +69,7 @@ impl Sensors {
 
     fn uncovered_slot_frequency(&self, dim: i32) -> usize {
         for y in 0..dim {
-            let mut scanned: RangeSetBlaze<i32> = RangeSetBlaze::new();
-            for (sensor, beacon) in &self.sensors {
-                let distance = sensor.manhattan(&beacon);
-                let intersect = sensor.1 - y;
-                if intersect.unsigned_abs() > distance {
-                    // No overlap
-                    continue;
-                }
-
-                let x_min = sensor.0 - (distance as i32 - intersect.abs()).abs();
-                let x_max = sensor.0 + (distance as i32 - intersect.abs()).abs();
-
-                if x_max < 0 {
-                    continue;
-                }
-
-                if x_min > dim {
-                    continue;
-                }
-
-                scanned.ranges_insert(x_min..=x_max);
-            }
+            let scanned = self.scanned_xs(y);
             if scanned.ranges_len() == 2 {
                 let x = scanned.ranges().next().unwrap().max().unwrap() + 1;
                 return x as usize * 4000000 + y as usize;
