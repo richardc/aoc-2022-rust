@@ -1,7 +1,7 @@
 advent_of_code::solution!(15);
 
 use nom::{bytes::complete::tag, character::complete::i32, sequence::tuple, IResult};
-use std::collections::HashSet;
+use range_set_blaze::RangeSetBlaze;
 
 #[derive(Debug)]
 struct Point(i32, i32);
@@ -39,7 +39,7 @@ impl Sensors {
     }
 
     fn excluded_cells(&self, y: i32) -> usize {
-        let mut excluded: HashSet<i32> = HashSet::new();
+        let mut excluded: RangeSetBlaze<i32> = RangeSetBlaze::new();
         for (sensor, beacon) in &self.sensors {
             let distance = sensor.manhattan(&beacon);
             let intersect = sensor.1 - y;
@@ -50,12 +50,12 @@ impl Sensors {
 
             let x_min = sensor.0 - (distance as i32 - intersect.abs()).abs();
             let x_max = sensor.0 + (distance as i32 - intersect.abs()).abs();
-            excluded.extend(x_min..=x_max);
+            excluded.ranges_insert(x_min..=x_max);
         }
 
         for (_, beacon) in &self.sensors {
             if beacon.1 == y {
-                excluded.remove(&beacon.0);
+                excluded.remove(beacon.0);
             }
         }
 
