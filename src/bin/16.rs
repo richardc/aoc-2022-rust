@@ -33,6 +33,32 @@ struct Valves<'a> {
     valves: Vec<(&'a str, u32, Vec<&'a str>)>,
 }
 
+// Floyd-Warshall algorithm - takes an adjaceny list, returns the matrix of shortest paths
+fn floyd_warshall(adj: Vec<Vec<usize>>) -> Array2<u32> {
+    let mut distances = Array2::from_elem((adj.len(), adj.len()), u32::MAX);
+    for i in 0..adj.len() {
+        distances[[i, i]] = 0;
+    }
+    for i in 0..adj.len() {
+        for &j in &adj[i] {
+            distances[[i, j]] = 1;
+            distances[[j, i]] = 1;
+        }
+    }
+    for k in 0..adj.len() {
+        for i in 0..adj.len() {
+            for j in 0..adj.len() {
+                if let Some(distance) = distances[[i, k]].checked_add(distances[[k, j]]) {
+                    if distances[[i, j]] > distance {
+                        distances[[i, j]] = distance;
+                    }
+                }
+            }
+        }
+    }
+    distances
+}
+
 impl<'b> Valves<'b> {
     fn new<'a>(s: &'a str) -> Valves<'a>
     where
@@ -50,36 +76,19 @@ impl<'b> Valves<'b> {
                 .enumerate()
                 .map(|(i, &(name, _, _))| (name, i)),
         );
+        let adj: Vec<Vec<usize>> = self
+            .valves
+            .iter()
+            .map(|v| v.2.iter().map(|e| *ids.get(e).unwrap()).collect())
+            .collect();
+        let distances = floyd_warshall(adj);
+
         let interesting: Vec<usize> = self
             .valves
             .iter()
             .filter(|(_, flow, _)| *flow > 0)
             .map(|(name, _, _)| *ids.get(name).unwrap())
             .collect();
-
-        // Floyd-Warshall algorithm
-        let mut distances = Array2::from_elem((self.valves.len(), self.valves.len()), u32::MAX);
-        for i in 0..self.valves.len() {
-            distances[[i, i]] = 0;
-        }
-        for i in 0..self.valves.len() {
-            for edge in &self.valves[i].2 {
-                let j = *ids.get(edge).unwrap();
-                distances[[i, j]] = 1;
-                distances[[j, i]] = 1;
-            }
-        }
-        for k in 0..self.valves.len() {
-            for i in 0..self.valves.len() {
-                for j in 0..self.valves.len() {
-                    if let Some(distance) = distances[[i, k]].checked_add(distances[[k, j]]) {
-                        if distances[[i, j]] > distance {
-                            distances[[i, j]] = distance;
-                        }
-                    }
-                }
-            }
-        }
 
         assert!(interesting.len() <= 16);
         let start = *ids.get("AA").unwrap();
