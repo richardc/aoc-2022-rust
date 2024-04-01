@@ -42,7 +42,7 @@ impl Sensors {
     fn scanned_xs(&self, y: i32) -> RangeSetBlaze<i32> {
         let mut scanned: RangeSetBlaze<i32> = RangeSetBlaze::new();
         for (sensor, beacon) in &self.sensors {
-            let distance = sensor.manhattan(&beacon);
+            let distance = sensor.manhattan(beacon);
             let intersect = sensor.1 - y;
             if intersect.unsigned_abs() > distance {
                 // No overlap
