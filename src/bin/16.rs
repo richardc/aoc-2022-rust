@@ -37,7 +37,7 @@ struct Valves<'a> {
 }
 
 // Floyd-Warshall algorithm - takes an adjaceny list, returns the matrix of shortest paths
-fn floyd_warshall(adj: &Vec<Vec<usize>>) -> Array2<u32> {
+fn floyd_warshall(adj: &[Vec<usize>]) -> Array2<u32> {
     let mut distances = Array2::from_elem((adj.len(), adj.len()), u32::MAX);
     for i in 0..adj.len() {
         distances[[i, i]] = 0;
