@@ -3,7 +3,7 @@ advent_of_code::solution!(18);
 use itertools::iproduct;
 use ndarray::Array3;
 
-#[derive(Debug, Default, PartialEq, Clone)]
+#[derive(Debug, Default, PartialEq, Clone, Copy)]
 enum Block {
     #[default]
     Air,
@@ -25,24 +25,17 @@ fn external_faces(space: &Array3<Block>) -> usize {
     let mut count = 0;
     for (x, y, z) in iproduct!(1..23, 1..23, 1..23) {
         if space[[x, y, z]] == Block::Lava {
-            if space[[x - 1, y, z]] == Block::Air {
-                count += 1;
-            }
-            if space[[x + 1, y, z]] == Block::Air {
-                count += 1;
-            }
-            if space[[x, y - 1, z]] == Block::Air {
-                count += 1;
-            }
-            if space[[x, y + 1, z]] == Block::Air {
-                count += 1;
-            }
-            if space[[x, y, z - 1]] == Block::Air {
-                count += 1;
-            }
-            if space[[x, y, z + 1]] == Block::Air {
-                count += 1;
-            }
+            count += [
+                [x - 1, y, z],
+                [x + 1, y, z],
+                [x, y - 1, z],
+                [x, y + 1, z],
+                [x, y, z - 1],
+                [x, y, z + 1],
+            ]
+            .iter()
+            .filter(|&&p| space[p] == Block::Air)
+            .count();
         }
     }
     count
@@ -69,12 +62,16 @@ pub fn part_two(input: &str) -> Option<usize> {
     loop {
         for (x, y, z) in iproduct!(1..23, 1..23, 1..23) {
             if space[[x, y, z]] == Block::Void
-                && (space[[x - 1, y, z]] == Block::Air
-                    || space[[x + 1, y, z]] == Block::Air
-                    || space[[x, y - 1, z]] == Block::Air
-                    || space[[x, y + 1, z]] == Block::Air
-                    || space[[x, y, z - 1]] == Block::Air
-                    || space[[x, y, z + 1]] == Block::Air)
+                && [
+                    [x - 1, y, z],
+                    [x + 1, y, z],
+                    [x, y - 1, z],
+                    [x, y + 1, z],
+                    [x, y, z - 1],
+                    [x, y, z + 1],
+                ]
+                .iter()
+                .any(|&p| space[p] == Block::Air)
             {
                 next[[x, y, z]] = Block::Air
             }
