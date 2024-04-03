@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fmt::Display;
 
 advent_of_code::solution!(17);
@@ -33,7 +34,7 @@ struct Well {
     next_rock: usize,
     rocks_placed: usize,
     well: Vec<u8>,
-    height: i32,
+    height: usize,
 }
 
 impl Display for Well {
@@ -68,7 +69,7 @@ impl Display for Well {
             if y == self.y as usize {
                 write!(f, "  <- y = {y}")?;
             }
-            if y == self.height as usize {
+            if y == self.height {
                 write!(f, "  <- height = {y}")?;
             }
             writeln!(f)?;
@@ -128,8 +129,8 @@ impl Well {
         for offset in 0..4 {
             let bits = ((self.rock >> offset * 8) & 0xFF) as u8;
             if bits != 0 {
-                block_height = block_height.max(offset + self.y);
-                self.well[(self.y + offset) as usize] |= bits;
+                block_height = block_height.max(offset + self.y as usize);
+                self.well[(self.y as usize + offset) as usize] |= bits;
             }
         }
 
@@ -147,7 +148,14 @@ impl Well {
         // next rock
         self.rock = ROCKS[self.next_rock];
         self.next_rock = (self.next_rock + 1) % ROCKS.len();
-        self.y = self.height + 3;
+        self.y = self.height as i32 + 3;
+    }
+
+    fn drop_rock(&mut self) {
+        let last = self.rocks_placed;
+        while last == self.rocks_placed {
+            self.step();
+        }
     }
 }
 
@@ -174,14 +182,56 @@ fn drop_blocks(input: &str, count: usize) -> Well {
     well
 }
 
-pub fn part_one(input: &str) -> Option<i32> {
+fn drop_many_blocks(input: &str, count: usize) -> usize {
+    let mut well = Well::new(input);
+    const CHECK: usize = 64;
+    let mut seen: HashMap<[u8; CHECK], (usize, usize)> = HashMap::new();
+
+    let mut step = 0;
+    let skipped;
+
+    loop {
+        step += 1;
+        well.drop_rock();
+        if well.well.len() < CHECK {
+            continue;
+        }
+
+        let pattern = (&well.well[(well.well.len() - CHECK)..])
+            .try_into()
+            .expect("bytes");
+
+        if let Some((last_seen, last_height)) = seen.get(&pattern) {
+            // eprintln!("cycle found {} {}", last_seen, step);
+            let stride = step - last_seen;
+            let remaining = count - step;
+            let steps = remaining / stride;
+            let growth = well.height - last_height;
+            skipped = growth * steps;
+            step += stride * steps;
+            // eprintln!("jumping ahead to step {}", step);
+            break;
+        }
+        seen.insert(pattern, (step, well.height));
+    }
+
+    // Simulate the tail
+    while step < count {
+        step += 1;
+        well.drop_rock()
+    }
+
+    skipped + well.height
+}
+
+pub fn part_one(input: &str) -> Option<usize> {
     let well = drop_blocks(input, 2022);
     Some(well.height)
 }
 
-pub fn part_two(input: &str) -> Option<u32> {
-    _ = input;
-    None
+pub fn part_two(input: &str) -> Option<usize> {
+    let result = drop_many_blocks(input, 1_000_000_000_000);
+    Some(result)
 }
 
 #[cfg(test)]
@@ -209,6 +259,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(1_514_285_714_288));
     }
 }
