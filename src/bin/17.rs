@@ -127,17 +127,18 @@ impl Well {
         // blit rock into well, tracking height of this block
         let mut block_height = 0;
         for offset in 0..4 {
-            let bits = ((self.rock >> offset * 8) & 0xFF) as u8;
+            let bits = ((self.rock >> (offset * 8)) & 0xFF) as u8;
             if bits != 0 {
-                block_height = block_height.max(offset + self.y as usize);
-                self.well[(self.y as usize + offset) as usize] |= bits;
+                let index = self.y as usize + offset;
+                block_height = block_height.max(index);
+                self.well[index] |= bits;
             }
         }
 
         self.height = self.height.max(block_height + 1);
 
         //  Grow the well to accomodate next block
-        let well_space = (self.height + 3 + 4) as usize;
+        let well_space = self.height + 3 + 4;
         if self.well.len() < well_space {
             let grow = well_space - self.well.len();
             self.well.extend(vec![0; grow]);
