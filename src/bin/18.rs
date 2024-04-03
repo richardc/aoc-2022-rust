@@ -1,46 +1,6 @@
 advent_of_code::solution!(18);
 
-use itertools::{iproduct, Itertools};
-
-#[derive(Debug, Clone, Copy)]
-struct Cube {
-    x: usize,
-    y: usize,
-    z: usize,
-}
-
-impl Cube {
-    fn new(s: &str) -> Self {
-        let (x, y, z) = sscanf::sscanf!(s, "{usize},{usize},{usize}").expect("cube");
-        Self { x, y, z }
-    }
-
-    fn adjacent(&self, other: &Self) -> bool {
-        if self.x == other.x && self.y == other.y && self.z.abs_diff(other.z) == 1 {
-            return true;
-        }
-        if self.x == other.x && self.z == other.z && self.y.abs_diff(other.y) == 1 {
-            return true;
-        }
-        if self.z == other.z && self.y == other.y && self.x.abs_diff(other.x) == 1 {
-            return true;
-        }
-        false
-    }
-}
-
-pub fn part_one(input: &str) -> Option<usize> {
-    let cubes = input.lines().map(Cube::new).collect_vec();
-    let mut count = cubes.len() * 6;
-    for (a, b) in iproduct!(cubes.clone(), cubes.clone()) {
-        if a.adjacent(&b) {
-            count -= 1;
-        }
-    }
-
-    Some(count)
-}
-
+use itertools::iproduct;
 use ndarray::Array3;
 
 #[derive(Debug, Default, PartialEq, Clone)]
@@ -51,11 +11,50 @@ enum Block {
     Void,
 }
 
-pub fn part_two(input: &str) -> Option<usize> {
+fn load(input: &str) -> Array3<Block> {
     let mut space: Array3<Block> = Array3::default((25, 25, 25));
-    for Cube { x, y, z } in input.lines().map(Cube::new) {
+    for line in input.lines() {
+        let (x, y, z) = sscanf::sscanf!(line, "{usize},{usize},{usize}").expect("cube");
         space[[x + 1, y + 1, z + 1]] = Block::Lava;
     }
+    space
+}
+
+fn external_faces(space: &Array3<Block>) -> usize {
+    // For every Lava block, count up the faces touching Air
+    let mut count = 0;
+    for (x, y, z) in iproduct!(1..23, 1..23, 1..23) {
+        if space[[x, y, z]] == Block::Lava {
+            if space[[x - 1, y, z]] == Block::Air {
+                count += 1;
+            }
+            if space[[x + 1, y, z]] == Block::Air {
+                count += 1;
+            }
+            if space[[x, y - 1, z]] == Block::Air {
+                count += 1;
+            }
+            if space[[x, y + 1, z]] == Block::Air {
+                count += 1;
+            }
+            if space[[x, y, z - 1]] == Block::Air {
+                count += 1;
+            }
+            if space[[x, y, z + 1]] == Block::Air {
+                count += 1;
+            }
+        }
+    }
+    count
+}
+
+pub fn part_one(input: &str) -> Option<usize> {
+    let space = load(input);
+    Some(external_faces(&space))
+}
+
+pub fn part_two(input: &str) -> Option<usize> {
+    let mut space = load(input);
 
     // Turn all the inner air into nothing, apart from the outer border.
     for (x, y, z) in iproduct!(1..23, 1..23, 1..23) {
@@ -89,32 +88,7 @@ pub fn part_two(input: &str) -> Option<usize> {
         space = next.clone();
     }
 
-    // Now for every block, count up the faces touching Air
-    let mut count = 0;
-    for (x, y, z) in iproduct!(1..23, 1..23, 1..23) {
-        if next[[x, y, z]] == Block::Lava {
-            if next[[x - 1, y, z]] == Block::Air {
-                count += 1;
-            }
-            if next[[x + 1, y, z]] == Block::Air {
-                count += 1;
-            }
-            if next[[x, y - 1, z]] == Block::Air {
-                count += 1;
-            }
-            if next[[x, y + 1, z]] == Block::Air {
-                count += 1;
-            }
-            if next[[x, y, z - 1]] == Block::Air {
-                count += 1;
-            }
-            if next[[x, y, z + 1]] == Block::Air {
-                count += 1;
-            }
-        }
-    }
-
-    Some(count)
+    Some(external_faces(&next))
 }
 
 #[cfg(test)]
