@@ -68,16 +68,15 @@ pub fn part_two(input: &str) -> Option<usize> {
     // Flood fill, but in the style of Life.  Just flip any Void touching Air to Air
     loop {
         for (x, y, z) in iproduct!(1..23, 1..23, 1..23) {
-            if space[[x, y, z]] == Block::Void {
-                if space[[x - 1, y, z]] == Block::Air
+            if space[[x, y, z]] == Block::Void
+                && (space[[x - 1, y, z]] == Block::Air
                     || space[[x + 1, y, z]] == Block::Air
                     || space[[x, y - 1, z]] == Block::Air
                     || space[[x, y + 1, z]] == Block::Air
                     || space[[x, y, z - 1]] == Block::Air
-                    || space[[x, y, z + 1]] == Block::Air
-                {
-                    next[[x, y, z]] = Block::Air
-                }
+                    || space[[x, y, z + 1]] == Block::Air)
+            {
+                next[[x, y, z]] = Block::Air
             }
         }
 
