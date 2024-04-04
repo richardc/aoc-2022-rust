@@ -1,5 +1,5 @@
 use std::collections::BinaryHeap;
-use std::collections::HashMap;
+use std::collections::HashSet;
 
 advent_of_code::solution!(19);
 
@@ -150,18 +150,17 @@ mod state_test {
 
 impl Blueprint {
     fn score(&self, duration: usize) -> usize {
-        let mut seen: HashMap<State, usize> = HashMap::new();
+        let mut seen: HashSet<State> = HashSet::new();
         let mut queue = BinaryHeap::new();
         queue.push(State::start(duration));
 
         let mut best = 0;
         while let Some(state) = queue.pop() {
-            if let Some(score) = seen.get(&state) {
-                if *score >= state.geodes {
-                    continue;
-                }
+            if seen.contains(&state) {
+                continue;
             }
-            seen.insert(state, state.geodes);
+            seen.insert(state);
+
             if state.geodes > best {
                 best = state.geodes;
             }
@@ -171,6 +170,9 @@ impl Blueprint {
             }
 
             for neighbour in state.neighbours(self) {
+                if seen.contains(&neighbour) {
+                    continue;
+                }
                 if best >= neighbour.optimistic_geodes() {
                     continue;
                 }
