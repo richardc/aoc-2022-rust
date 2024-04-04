@@ -188,9 +188,9 @@ pub fn part_one(input: &str) -> Option<usize> {
     Some(blueprints.iter().map(|bp| bp.number * bp.score(24)).sum())
 }
 
-pub fn part_two(input: &str) -> Option<u32> {
-    _ = input;
-    None
+pub fn part_two(input: &str) -> Option<usize> {
+    let blueprints: Vec<_> = input.lines().map(Blueprint::new).collect();
+    Some(blueprints.iter().take(3).map(|bp| bp.score(32)).product())
 }
 
 #[cfg(test)]
@@ -217,11 +217,5 @@ mod tests {
     fn test_part_one() {
         let result = part_one(&advent_of_code::template::read_file("examples", DAY));
         assert_eq!(result, Some(33));
-    }
-
-    #[test]
-    fn test_part_two() {
-        let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
     }
 }
