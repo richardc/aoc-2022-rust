@@ -1,7 +1,22 @@
 advent_of_code::solution!(20);
 
 fn mix(input: &[i32]) -> Vec<i32> {
-    input.to_vec()
+    let mut indexes: Vec<usize> = input.iter().enumerate().map(|(i, _)| i).collect();
+    for (i, v) in input.iter().enumerate() {
+        if *v == 0 {
+            continue;
+        }
+        let pos = indexes.iter().position(|n| *n == i).unwrap();
+        let index = indexes.remove(pos);
+        let new_pos = (pos as i32 + v).rem_euclid(indexes.len() as i32) as usize;
+        if new_pos == 0 {
+            indexes.push(index);
+        } else {
+            indexes.insert(new_pos, index);
+        }
+    }
+
+    indexes.iter().map(|i| input[*i]).collect()
 }
 
 pub fn part_one(input: &str) -> Option<i32> {
@@ -23,6 +38,16 @@ pub fn part_two(input: &str) -> Option<u32> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_mix() {
+        let input: Vec<_> = advent_of_code::template::read_file("examples", DAY)
+            .lines()
+            .map(|l| l.parse().unwrap())
+            .collect();
+        let result = mix(&input);
+        assert_eq!(result, [1, 2, -3, 4, 0, 3, -2]);
+    }
 
     #[test]
     fn test_part_one() {
