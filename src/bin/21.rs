@@ -43,7 +43,7 @@ struct Operation {
 #[derive(Debug)]
 enum Monkey {
     Variable(Value),
-    Value(Value),
+    Constant(Value),
     Op(Box<Operation>),
 }
 
@@ -61,7 +61,7 @@ impl Monkey {
             if name == "humn" {
                 Monkey::Variable(value)
             } else {
-                Monkey::Value(value)
+                Monkey::Constant(value)
             }
         } else {
             let args: Vec<_> = def.split(' ').collect();
@@ -74,7 +74,7 @@ impl Monkey {
 
     fn eval(&self) -> Value {
         match &self {
-            Monkey::Value(v) | Monkey::Variable(v) => *v,
+            Monkey::Constant(v) | Monkey::Variable(v) => *v,
             Monkey::Op(op) => {
                 let left = op.left.eval();
                 let right = op.right.eval();
@@ -83,13 +83,13 @@ impl Monkey {
         }
     }
 
-    fn fold_tree(&mut self) {
+    fn constant_fold_tree(&mut self) {
         if let Monkey::Op(node) = self {
             let Operation { left, right, op } = node.as_mut();
-            left.fold_tree();
-            right.fold_tree();
-            if let (Monkey::Value(left), Monkey::Value(right)) = (left, right) {
-                *self = Monkey::Value(op.apply(*left, *right));
+            left.constant_fold_tree();
+            right.constant_fold_tree();
+            if let (Monkey::Constant(left), Monkey::Constant(right)) = (left, right) {
+                *self = Monkey::Constant(op.apply(*left, *right));
             }
         }
     }
@@ -106,7 +106,7 @@ impl Monkey {
     fn uneval(self, accum: &mut Value) -> Self {
         let (left, op, right) = self.into_children();
 
-        let (constant, variable, left_was_constant) = if matches!(left, Monkey::Value(_)) {
+        let (constant, variable, left_was_constant) = if matches!(left, Monkey::Constant(_)) {
             (left.eval(), right, true)
         } else {
             (right.eval(), left, false)
@@ -135,10 +135,10 @@ impl Monkey {
     }
 
     fn human_say(mut self) -> Value {
-        self.fold_tree();
+        self.constant_fold_tree();
 
         let (left, _, right) = self.into_children();
-        let (mut target, mut humn_branch) = if matches!(left, Monkey::Value(_)) {
+        let (mut target, mut humn_branch) = if matches!(left, Monkey::Constant(_)) {
             (left.eval(), right)
         } else {
             (right.eval(), left)
