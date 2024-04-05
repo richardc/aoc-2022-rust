@@ -17,7 +17,7 @@ enum Packet {
 
 type Stream<'i> = &'i str;
 
-fn packet_integer<'s>(input: &mut Stream<'s>) -> PResult<Packet> {
+fn packet_integer(input: &mut Stream<'_>) -> PResult<Packet> {
     let parser = digit1;
 
     parser
@@ -25,7 +25,7 @@ fn packet_integer<'s>(input: &mut Stream<'s>) -> PResult<Packet> {
         .parse_next(input)
 }
 
-fn packet_list<'s>(input: &mut Stream<'s>) -> PResult<Packet> {
+fn packet_list(input: &mut Stream<'_>) -> PResult<Packet> {
     let parser = delimited(
         literal("["),
         separated(0.., packet, literal(",")),
@@ -35,7 +35,7 @@ fn packet_list<'s>(input: &mut Stream<'s>) -> PResult<Packet> {
     parser.map(Packet::List).parse_next(input)
 }
 
-fn packet<'s>(input: &mut Stream<'s>) -> PResult<Packet> {
+fn packet(input: &mut Stream<'_>) -> PResult<Packet> {
     alt((packet_integer, packet_list)).parse_next(input)
 }
 

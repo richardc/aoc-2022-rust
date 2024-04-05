@@ -20,7 +20,7 @@ struct Sensors {
 
 type Stream<'a> = &'a str;
 
-fn sensor<'s>(input: &mut Stream<'s>) -> PResult<(Point, Point)> {
+fn sensor(input: &mut Stream<'_>) -> PResult<(Point, Point)> {
     let (_, x1, _, y1, _, x2, _, y2) = (
         literal("Sensor at x="),
         dec_int,
