@@ -2,7 +2,7 @@ advent_of_code::solution!(13);
 
 use std::cmp::Ordering;
 
-use nom::{
+use winnow::{
     branch::alt, bytes::complete::tag, character::complete::digit1, combinator::map,
     multi::separated_list0, sequence::delimited, IResult,
 };

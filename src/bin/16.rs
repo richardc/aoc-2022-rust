@@ -1,6 +1,8 @@
 use bitmaps::Bitmap;
 use ndarray::Array2;
-use nom::{
+use pathfinding::directed::bfs::bfs_reach;
+use std::collections::{HashMap, VecDeque};
+use winnow::{
     branch::alt,
     bytes::complete::tag,
     character::complete::{alpha1, u32},
@@ -8,8 +10,6 @@ use nom::{
     sequence::tuple,
     IResult,
 };
-use pathfinding::directed::bfs::bfs_reach;
-use std::collections::{HashMap, VecDeque};
 
 advent_of_code::solution!(16);
 

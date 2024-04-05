@@ -1,7 +1,7 @@
 advent_of_code::solution!(15);
 
-use nom::{bytes::complete::tag, character::complete::i32, sequence::tuple, IResult};
 use range_set_blaze::RangeSetBlaze;
+use winnow::{bytes::complete::tag, character::complete::i32, sequence::tuple, IResult};
 
 #[derive(Debug)]
 struct Point(i32, i32);
