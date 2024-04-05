@@ -4,27 +4,27 @@ use pathfinding::directed::bfs::bfs_reach;
 use std::collections::{HashMap, VecDeque};
 use winnow::{
     branch::alt,
-    bytes::complete::tag,
-    character::complete::{alpha1, u32},
-    multi::separated_list0,
-    sequence::tuple,
-    IResult,
+    bytes::tag,
+    character::{alpha1, dec_uint},
+    multi::separated0,
+    IResult, Parser,
 };
 
 advent_of_code::solution!(16);
 
 fn valve(input: &str) -> IResult<&str, (&str, u32, Vec<&str>)> {
-    let (input, (_, id, _, flow, _, edges)) = tuple((
+    let (input, (_, id, _, flow, _, edges)) = (
         tag("Valve "),
         alpha1,
         tag(" has flow rate="),
-        u32,
+        dec_uint,
         alt((
             tag("; tunnels lead to valves "),
             tag("; tunnel leads to valve "),
         )),
-        separated_list0(tag(", "), alpha1),
-    ))(input)?;
+        separated0(alpha1, tag(", ")),
+    )
+        .parse_next(input)?;
 
     Ok((input, (id, flow, edges)))
 }

@@ -1,7 +1,7 @@
 advent_of_code::solution!(15);
 
 use range_set_blaze::RangeSetBlaze;
-use winnow::{bytes::complete::tag, character::complete::i32, sequence::tuple, IResult};
+use winnow::{bytes::tag, character::dec_int, IResult, Parser};
 
 #[derive(Debug)]
 struct Point(i32, i32);
@@ -18,16 +18,17 @@ struct Sensors {
 }
 
 fn sensor(input: &str) -> IResult<&str, (Point, Point)> {
-    let (input, (_, x1, _, y1, _, x2, _, y2)) = tuple((
+    let (input, (_, x1, _, y1, _, x2, _, y2)) = (
         tag("Sensor at x="),
-        i32,
+        dec_int,
         tag(", y="),
-        i32,
+        dec_int,
         tag(": closest beacon is at x="),
-        i32,
+        dec_int,
         tag(", y="),
-        i32,
-    ))(input)?;
+        dec_int,
+    )
+        .parse_next(input)?;
 
     Ok((input, (Point(x1, y1), Point(x2, y2))))
 }

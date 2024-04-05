@@ -3,8 +3,8 @@ advent_of_code::solution!(13);
 use std::cmp::Ordering;
 
 use winnow::{
-    branch::alt, bytes::complete::tag, character::complete::digit1, combinator::map,
-    multi::separated_list0, sequence::delimited, IResult,
+    branch::alt, bytes::tag, character::digit1, multi::separated0, sequence::delimited, IResult,
+    Parser,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -16,13 +16,15 @@ enum Packet {
 fn packet_integer(input: &str) -> IResult<&str, Packet> {
     let parser = digit1;
 
-    map(parser, |s: &str| Packet::Integer(s.parse().unwrap()))(input)
+    parser
+        .map(|s: &str| Packet::Integer(s.parse().unwrap()))
+        .parse_next(input)
 }
 
 fn packet_list(input: &str) -> IResult<&str, Packet> {
-    let parser = delimited(tag("["), separated_list0(tag(","), packet), tag("]"));
+    let parser = delimited(tag("["), separated0(packet, tag(",")), tag("]"));
 
-    map(parser, Packet::List)(input)
+    parser.map(Packet::List).parse_next(input)
 }
 
 fn packet(input: &str) -> IResult<&str, Packet> {
