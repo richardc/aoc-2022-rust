@@ -1,7 +1,8 @@
 advent_of_code::solution!(15);
 
 use range_set_blaze::RangeSetBlaze;
-use winnow::{ascii::dec_int, bytes::tag, IResult, Parser};
+use winnow::prelude::*;
+use winnow::{ascii::dec_int, token::literal};
 
 #[derive(Debug)]
 struct Point(i32, i32);
@@ -17,25 +18,28 @@ struct Sensors {
     sensors: Vec<(Point, Point)>,
 }
 
-fn sensor(input: &str) -> IResult<&str, (Point, Point)> {
-    let (input, (_, x1, _, y1, _, x2, _, y2)) = (
-        tag("Sensor at x="),
+type Stream<'a> = &'a str;
+
+fn sensor<'s>(input: &mut Stream<'s>) -> PResult<(Point, Point)> {
+    let (_, x1, _, y1, _, x2, _, y2) = (
+        literal("Sensor at x="),
         dec_int,
-        tag(", y="),
+        literal(", y="),
         dec_int,
-        tag(": closest beacon is at x="),
+        literal(": closest beacon is at x="),
         dec_int,
-        tag(", y="),
+        literal(", y="),
         dec_int,
     )
         .parse_next(input)?;
 
-    Ok((input, (Point(x1, y1), Point(x2, y2))))
+    Ok((Point(x1, y1), Point(x2, y2)))
 }
 
 impl Sensors {
     fn new(s: &str) -> Self {
-        let mut sensors: Vec<(Point, Point)> = s.lines().map(|l| sensor(l).unwrap().1).collect();
+        let mut sensors: Vec<(Point, Point)> =
+            s.lines().map(|l| sensor.parse(l).unwrap()).collect();
         sensors.sort_by_key(|s| s.0 .0);
         Self { sensors }
     }

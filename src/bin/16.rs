@@ -2,27 +2,33 @@ use bitmaps::Bitmap;
 use ndarray::Array2;
 use pathfinding::directed::bfs::bfs_reach;
 use std::collections::{HashMap, VecDeque};
+use winnow::prelude::*;
 use winnow::{
-    ascii::alpha1, ascii::dec_uint, branch::alt, bytes::tag, multi::separated0, IResult, Parser,
+    ascii::alpha1,
+    ascii::dec_uint,
+    combinator::{alt, separated},
+    token::literal,
 };
 
 advent_of_code::solution!(16);
 
-fn valve(input: &str) -> IResult<&str, (&str, u32, Vec<&str>)> {
-    let (input, (_, id, _, flow, _, edges)) = (
-        tag("Valve "),
+type Stream<'a> = &'a str;
+
+fn valve<'a>(input: &mut Stream<'a>) -> PResult<(&'a str, u32, Vec<&'a str>)> {
+    let (_, id, _, flow, _, edges) = (
+        literal("Valve "),
         alpha1,
-        tag(" has flow rate="),
+        literal(" has flow rate="),
         dec_uint,
         alt((
-            tag("; tunnels lead to valves "),
-            tag("; tunnel leads to valve "),
+            literal("; tunnels lead to valves "),
+            literal("; tunnel leads to valve "),
         )),
-        separated0(alpha1, tag(", ")),
+        separated(0.., alpha1, literal(", ")),
     )
         .parse_next(input)?;
 
-    Ok((input, (id, flow, edges)))
+    Ok((id, flow, edges))
 }
 
 struct Valves<'a> {
@@ -64,7 +70,7 @@ impl<'b> Valves<'b> {
         'a: 'b,
         'b: 'a,
     {
-        let valves: Vec<_> = s.lines().map(|l| valve(l).unwrap().1).collect();
+        let valves: Vec<_> = s.lines().map(|l| valve.parse(l).unwrap()).collect();
         let ids: HashMap<&str, usize> = HashMap::from_iter(
             valves
                 .iter()

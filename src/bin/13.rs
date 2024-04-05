@@ -3,7 +3,10 @@ advent_of_code::solution!(13);
 use std::cmp::Ordering;
 
 use winnow::{
-    ascii::digit1, branch::alt, bytes::tag, multi::separated0, sequence::delimited, IResult, Parser,
+    ascii::digit1,
+    combinator::{alt, delimited, separated},
+    prelude::*,
+    token::literal,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -12,7 +15,9 @@ enum Packet {
     List(Vec<Packet>),
 }
 
-fn packet_integer(input: &str) -> IResult<&str, Packet> {
+type Stream<'i> = &'i str;
+
+fn packet_integer<'s>(input: &mut Stream<'s>) -> PResult<Packet> {
     let parser = digit1;
 
     parser
@@ -20,19 +25,23 @@ fn packet_integer(input: &str) -> IResult<&str, Packet> {
         .parse_next(input)
 }
 
-fn packet_list(input: &str) -> IResult<&str, Packet> {
-    let parser = delimited(tag("["), separated0(packet, tag(",")), tag("]"));
+fn packet_list<'s>(input: &mut Stream<'s>) -> PResult<Packet> {
+    let parser = delimited(
+        literal("["),
+        separated(0.., packet, literal(",")),
+        literal("]"),
+    );
 
     parser.map(Packet::List).parse_next(input)
 }
 
-fn packet(input: &str) -> IResult<&str, Packet> {
+fn packet<'s>(input: &mut Stream<'s>) -> PResult<Packet> {
     alt((packet_integer, packet_list)).parse_next(input)
 }
 
 impl Packet {
     fn new(s: &str) -> Self {
-        packet(s).expect("parsed").1
+        packet.parse_peek(s).expect("parsed").1
     }
 }
 
