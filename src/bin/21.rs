@@ -106,17 +106,29 @@ impl Monkey {
     fn uneval(self, accum: &mut Value) -> Self {
         let (left, op, right) = self.into_children();
 
-        let (constant, variable) = if matches!(left, Monkey::Value(_)) {
-            (left.eval(), right)
+        let (constant, variable, left_was_constant) = if matches!(left, Monkey::Value(_)) {
+            (left.eval(), right, true)
         } else {
-            (right.eval(), left)
+            (right.eval(), left, false)
         };
 
         match op {
             Op::Add => *accum -= constant,
-            Op::Sub => *accum += constant,
+            Op::Sub => {
+                if left_was_constant {
+                    *accum = constant - *accum
+                } else {
+                    *accum += constant
+                }
+            }
             Op::Mul => *accum /= constant,
-            Op::Div => *accum *= constant,
+            Op::Div => {
+                if left_was_constant {
+                    *accum = constant / *accum
+                } else {
+                    *accum *= constant
+                }
+            }
         }
 
         variable
