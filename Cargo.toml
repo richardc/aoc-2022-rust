@@ -34,7 +34,7 @@ pathfinding = "4.9.1"
 range-set-blaze = "0.1.16"
 bitmaps = "3.2.1"
 sscanf = "0.4.1"
-winnow = "0.3"
+winnow = "0.4"
 
 [dev-dependencies]
 rstest = "0.18.2"

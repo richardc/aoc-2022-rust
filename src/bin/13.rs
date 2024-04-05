@@ -3,8 +3,7 @@ advent_of_code::solution!(13);
 use std::cmp::Ordering;
 
 use winnow::{
-    branch::alt, bytes::tag, character::digit1, multi::separated0, sequence::delimited, IResult,
-    Parser,
+    ascii::digit1, branch::alt, bytes::tag, multi::separated0, sequence::delimited, IResult, Parser,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -28,7 +27,7 @@ fn packet_list(input: &str) -> IResult<&str, Packet> {
 }
 
 fn packet(input: &str) -> IResult<&str, Packet> {
-    alt((packet_integer, packet_list))(input)
+    alt((packet_integer, packet_list)).parse_next(input)
 }
 
 impl Packet {

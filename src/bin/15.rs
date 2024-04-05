@@ -1,7 +1,7 @@
 advent_of_code::solution!(15);
 
 use range_set_blaze::RangeSetBlaze;
-use winnow::{bytes::tag, character::dec_int, IResult, Parser};
+use winnow::{ascii::dec_int, bytes::tag, IResult, Parser};
 
 #[derive(Debug)]
 struct Point(i32, i32);

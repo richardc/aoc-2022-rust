@@ -3,11 +3,7 @@ use ndarray::Array2;
 use pathfinding::directed::bfs::bfs_reach;
 use std::collections::{HashMap, VecDeque};
 use winnow::{
-    branch::alt,
-    bytes::tag,
-    character::{alpha1, dec_uint},
-    multi::separated0,
-    IResult, Parser,
+    ascii::alpha1, ascii::dec_uint, branch::alt, bytes::tag, multi::separated0, IResult, Parser,
 };
 
 advent_of_code::solution!(16);
