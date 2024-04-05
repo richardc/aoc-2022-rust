@@ -3,7 +3,6 @@ use std::collections::HashMap;
 advent_of_code::solution!(21);
 
 type Value = i64;
-type Name = [u8; 4];
 
 #[derive(Debug, Clone, Copy)]
 enum Op {
@@ -95,21 +94,6 @@ impl Monkey {
         }
     }
 
-    fn have_humn(&self) -> bool {
-        if let Monkey::Variable(_) = self {
-            return true;
-        }
-        if let Monkey::Op(node) = self {
-            if node.left.have_humn() {
-                return true;
-            }
-            if node.right.have_humn() {
-                return true;
-            }
-        }
-        false
-    }
-
     fn into_children(self) -> (Monkey, Op, Monkey) {
         if let Monkey::Op(node) = self {
             let Operation { left, op, right } = *node;
@@ -122,25 +106,34 @@ impl Monkey {
     fn uneval(self, accum: &mut Value) -> Self {
         let (left, op, right) = self.into_children();
 
-        left
+        let (constant, variable) = if matches!(left, Monkey::Value(_)) {
+            (left.eval(), right)
+        } else {
+            (right.eval(), left)
+        };
+
+        match op {
+            Op::Add => *accum -= constant,
+            Op::Sub => *accum += constant,
+            Op::Mul => *accum /= constant,
+            Op::Div => *accum *= constant,
+        }
+
+        variable
     }
 
     fn human_say(mut self) -> Value {
         self.fold_tree();
-        let Monkey::Op(node) = self else {
-            unreachable!("should only be called on an op");
-        };
 
-        let Operation { left, right, .. } = *node;
-        let (constant, mut humn) = if left.have_humn() {
-            (right, left)
+        let (left, _, right) = self.into_children();
+        let (mut target, mut humn_branch) = if matches!(left, Monkey::Value(_)) {
+            (left.eval(), right)
         } else {
-            (left, right)
+            (right.eval(), left)
         };
 
-        let mut target = constant.eval();
-        while !matches!(humn, Monkey::Variable(_)) {
-            humn = humn.uneval(&mut target);
+        while !matches!(humn_branch, Monkey::Variable(_)) {
+            humn_branch = humn_branch.uneval(&mut target);
         }
         target
     }
