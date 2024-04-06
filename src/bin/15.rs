@@ -1,8 +1,8 @@
 advent_of_code::solution!(15);
 
 use range_set_blaze::RangeSetBlaze;
+use winnow::ascii::dec_int;
 use winnow::prelude::*;
-use winnow::{ascii::dec_int, token::literal};
 
 #[derive(Debug)]
 struct Point(i32, i32);
@@ -18,17 +18,15 @@ struct Sensors {
     sensors: Vec<(Point, Point)>,
 }
 
-type Stream<'a> = &'a str;
-
-fn sensor(input: &mut Stream<'_>) -> PResult<(Point, Point)> {
+fn sensor(input: &mut &str) -> PResult<(Point, Point)> {
     let (_, x1, _, y1, _, x2, _, y2) = (
-        literal("Sensor at x="),
+        "Sensor at x=",
         dec_int,
-        literal(", y="),
+        ", y=",
         dec_int,
-        literal(": closest beacon is at x="),
+        ": closest beacon is at x=",
         dec_int,
-        literal(", y="),
+        ", y=",
         dec_int,
     )
         .parse_next(input)?;

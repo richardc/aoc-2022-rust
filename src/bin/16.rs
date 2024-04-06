@@ -7,24 +7,18 @@ use winnow::{
     ascii::alpha1,
     ascii::dec_uint,
     combinator::{alt, separated},
-    token::literal,
 };
 
 advent_of_code::solution!(16);
 
-type Stream<'a> = &'a str;
-
-fn valve<'a>(input: &mut Stream<'a>) -> PResult<(&'a str, u32, Vec<&'a str>)> {
+fn valve<'a>(input: &mut &'a str) -> PResult<(&'a str, u32, Vec<&'a str>)> {
     let (_, id, _, flow, _, edges) = (
-        literal("Valve "),
+        "Valve ",
         alpha1,
-        literal(" has flow rate="),
+        " has flow rate=",
         dec_uint,
-        alt((
-            literal("; tunnels lead to valves "),
-            literal("; tunnel leads to valve "),
-        )),
-        separated(0.., alpha1, literal(", ")),
+        alt(("; tunnels lead to valves ", "; tunnel leads to valve ")),
+        separated(0.., alpha1, ", "),
     )
         .parse_next(input)?;
 

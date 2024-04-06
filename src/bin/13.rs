@@ -2,11 +2,10 @@ advent_of_code::solution!(13);
 
 use std::cmp::Ordering;
 
+use winnow::prelude::*;
 use winnow::{
     ascii::digit1,
     combinator::{alt, delimited, separated},
-    prelude::*,
-    token::literal,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -15,27 +14,19 @@ enum Packet {
     List(Vec<Packet>),
 }
 
-type Stream<'i> = &'i str;
-
-fn packet_integer(input: &mut Stream<'_>) -> PResult<Packet> {
-    let parser = digit1;
-
-    parser
+fn packet_integer(input: &mut &str) -> PResult<Packet> {
+    digit1
         .map(|s: &str| Packet::Integer(s.parse().unwrap()))
         .parse_next(input)
 }
 
-fn packet_list(input: &mut Stream<'_>) -> PResult<Packet> {
-    let parser = delimited(
-        literal("["),
-        separated(0.., packet, literal(",")),
-        literal("]"),
-    );
-
-    parser.map(Packet::List).parse_next(input)
+fn packet_list(input: &mut &str) -> PResult<Packet> {
+    delimited('[', separated(0.., packet, ','), ']')
+        .map(Packet::List)
+        .parse_next(input)
 }
 
-fn packet(input: &mut Stream<'_>) -> PResult<Packet> {
+fn packet(input: &mut &str) -> PResult<Packet> {
     alt((packet_integer, packet_list)).parse_next(input)
 }
 
