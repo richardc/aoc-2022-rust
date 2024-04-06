@@ -6,7 +6,7 @@ use winnow::prelude::*;
 
 advent_of_code::solution!(22);
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone, Copy)]
 enum Facing {
     #[default]
     Right = 0,
@@ -82,14 +82,18 @@ fn parse_steps(input: &mut &str) -> PResult<Vec<Step>> {
     .parse_next(input)
 }
 
-#[derive(Debug)]
+trait Zooper {
+    fn step(&self, point: (usize, usize), direction: Facing) -> ((usize, usize), Facing);
+}
+
 struct Walker {
     row: usize,
     column: usize,
     facing: Facing,
+    zooper: Box<dyn Zooper>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 enum Tile {
     Open,
     Rock,
@@ -106,6 +110,7 @@ impl Tile {
     }
 }
 
+#[derive(Debug, Clone)]
 struct Map {
     tiles: HashMap<(usize, usize), Tile>,
     directions: String,
@@ -138,50 +143,47 @@ impl Map {
 }
 
 impl Walker {
-    fn walk(map: &Map) -> Self {
-        let mut walker = Self {
+    fn new(map: &Map, zooper: Box<dyn Zooper>) -> Self {
+        Self {
             row: map.start.0,
             column: map.start.1,
             facing: Facing::Right,
-        };
+            zooper,
+        }
+    }
 
+    fn walk(&mut self, map: &Map) {
         for step in parse_steps
             .parse(&map.directions)
             .expect("parsed directions")
         {
             use Step::*;
             match step {
-                TurnRight => walker.facing.turn_right(),
-                TurnLeft => walker.facing.turn_left(),
+                TurnRight => self.facing.turn_right(),
+                TurnLeft => self.facing.turn_left(),
                 Forward(steps) => {
                     for _ in 0..steps {
-                        walker.step(map);
+                        self.step(map);
                     }
                 }
             }
         }
-
-        walker
     }
 
     fn step(&mut self, map: &Map) {
         let next = self.facing.step((self.row, self.column));
-        let (tile, next) = if let Some(tile) = map.tiles.get(&next) {
-            (tile, next)
+        let (next, facing) = if let Some(_) = map.tiles.get(&next) {
+            (next, self.facing)
         } else {
-            // Pacman rules - step back until we hit void again
-            let mut last = (self.row, self.column);
-            let mut next = last;
-            let mut tile = map.tiles.get(&last).expect("should start on a tile");
-            while let Some(backwards) = map.tiles.get(&next) {
-                last = next;
-                next = self.facing.step_backwards(next);
-                tile = backwards;
-            }
-            (tile, last)
+            self.zooper.step((self.row, self.column), self.facing)
         };
+        let tile = map.tiles.get(&next).unwrap();
+
         match tile {
-            Tile::Open => (self.row, self.column) = next,
+            Tile::Open => {
+                (self.row, self.column) = next;
+                self.facing = facing;
+            }
             Tile::Rock => (),
         }
     }
@@ -191,15 +193,49 @@ impl Walker {
     }
 }
 
-pub fn part_one(input: &str) -> Option<usize> {
-    let map = Map::new(input);
-    let walked = Walker::walk(&map);
-    Some(walked.sum())
+struct Pacman {
+    map: Map,
 }
 
-pub fn part_two(input: &str) -> Option<u32> {
-    _ = input;
-    None
+impl Pacman {
+    fn new(map: Map) -> Self {
+        Self { map }
+    }
+}
+
+impl Zooper for Pacman {
+    fn step(&self, point: (usize, usize), direction: Facing) -> ((usize, usize), Facing) {
+        // Pacman rules - step back until we hit void again
+        let mut last = point;
+        let mut next = last;
+        while let Some(_) = self.map.tiles.get(&next) {
+            last = next;
+            next = direction.step_backwards(next);
+        }
+        (last, direction)
+    }
+}
+
+struct CubeNet {}
+
+impl Zooper for CubeNet {
+    fn step(&self, point: (usize, usize), direction: Facing) -> ((usize, usize), Facing) {
+        todo!();
+    }
+}
+
+pub fn part_one(input: &str) -> Option<usize> {
+    let map = Map::new(input);
+    let mut walker = Walker::new(&map, Box::new(Pacman::new(map.clone())));
+    walker.walk(&map);
+    Some(walker.sum())
+}
+
+pub fn part_two(input: &str) -> Option<usize> {
+    let map = Map::new(input);
+    let mut walker = Walker::new(&map, Box::new(CubeNet {}));
+    walker.walk(&map);
+    Some(walker.sum())
 }
 
 #[cfg(test)]
@@ -215,6 +251,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(5031));
     }
 }
