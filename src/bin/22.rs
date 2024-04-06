@@ -172,7 +172,7 @@ impl Walker {
 
     fn step(&mut self, map: &Map) {
         let next = self.facing.step((self.row, self.column));
-        let (next, facing) = if let Some(_) = map.tiles.get(&next) {
+        let (next, facing) = if map.tiles.contains_key(&next) {
             (next, self.facing)
         } else {
             self.zooper.step((self.row, self.column), self.facing)
@@ -208,7 +208,7 @@ impl Zooper for Pacman {
         // Pacman rules - step back until we hit void again
         let mut last = point;
         let mut next = last;
-        while let Some(_) = self.map.tiles.get(&next) {
+        while self.map.tiles.contains_key(&next) {
             last = next;
             next = direction.step_backwards(next);
         }
@@ -220,7 +220,7 @@ struct CubeNet {}
 
 impl Zooper for CubeNet {
     fn step(&self, point: (usize, usize), direction: Facing) -> ((usize, usize), Facing) {
-        todo!();
+        (point, direction)
     }
 }
 
