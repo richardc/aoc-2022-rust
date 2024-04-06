@@ -76,7 +76,7 @@ fn parse_steps(input: &mut &str) -> PResult<Vec<Step>> {
         alt((
             'L'.map(|_| Step::TurnLeft),
             'R'.map(|_| Step::TurnRight),
-            dec_uint.map(|v| Step::Forward(v)),
+            dec_uint.map(Step::Forward),
         )),
     )
     .parse_next(input)
