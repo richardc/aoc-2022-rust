@@ -152,12 +152,7 @@ pub fn part_one(input: &str) -> Option<usize> {
 
 pub fn part_two(input: &str) -> Option<usize> {
     let mut elves = Elves::new(input);
-    for count in 1.. {
-        if !elves.step() {
-            return Some(count);
-        }
-    }
-    None
+    (1..).find(|_| !elves.step())
 }
 
 #[cfg(test)]
