@@ -150,8 +150,13 @@ pub fn part_one(input: &str) -> Option<usize> {
     Some(elves.empty_tiles())
 }
 
-pub fn part_two(input: &str) -> Option<u32> {
-    _ = input;
+pub fn part_two(input: &str) -> Option<usize> {
+    let mut elves = Elves::new(input);
+    for count in 1.. {
+        if !elves.step() {
+            return Some(count);
+        }
+    }
     None
 }
 
@@ -188,6 +193,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(20));
     }
 }
