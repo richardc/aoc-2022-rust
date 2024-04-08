@@ -51,8 +51,6 @@ const SW: (isize, isize) = (1, -1);
 const W: (isize, isize) = (0, -1);
 const NW: (isize, isize) = (-1, -1);
 
-const COMPASS: [(isize, isize); 8] = [N, NE, E, SE, S, SW, W, NW];
-
 impl Elves {
     fn new(input: &str) -> Self {
         let locations = HashSet::from_iter(input.lines().enumerate().flat_map(|(r, l)| {
@@ -67,31 +65,36 @@ impl Elves {
         Self { step: 0, locations }
     }
 
-    fn population_count(&self, point: (isize, isize), neighbours: &[(isize, isize)]) -> usize {
-        neighbours
-            .iter()
-            .filter(|neighbour| {
-                let check = (point.0 + neighbour.0, point.1 + neighbour.1);
-                self.locations.contains(&check)
-            })
-            .count()
-    }
-
     fn step(&mut self) -> bool {
         let mut proposed: HashMap<(isize, isize), Vec<(isize, isize)>> = HashMap::new();
-        const CHECK_DIRECTIONS: [[(isize, isize); 3]; 4] =
-            [[NE, N, NW], [SE, S, SW], [NW, W, SW], [NE, E, SE]];
+        const COMPASS: [(isize, isize); 8] = [N, NE, E, SE, S, SW, W, NW];
+        const CHECK_DIRECTIONS: [((isize, isize), [usize; 3]); 4] = [
+            (N, [7, 0, 1]),
+            (S, [3, 4, 5]),
+            (W, [5, 6, 7]),
+            (E, [1, 2, 3]),
+        ];
         for &elf in &self.locations {
-            if self.population_count(elf, &COMPASS) == 0 {
+            let neighbours: [bool; 8] = COMPASS
+                .iter()
+                .map(|direction| {
+                    let neighbour = (elf.0 + direction.0, elf.1 + direction.1);
+                    self.locations.contains(&neighbour)
+                })
+                .collect_vec()
+                .try_into()
+                .unwrap();
+
+            if !neighbours.contains(&true) {
                 continue;
             }
 
             for i in 0..CHECK_DIRECTIONS.len() {
-                let check = CHECK_DIRECTIONS[(self.step + i) % CHECK_DIRECTIONS.len()];
-                if self.population_count(elf, &check) != 0 {
+                let direction = CHECK_DIRECTIONS[(self.step + i) % CHECK_DIRECTIONS.len()];
+                if direction.1.iter().any(|&i| neighbours[i]) {
                     continue;
                 }
-                let step = (check[1].0 + elf.0, check[1].1 + elf.1);
+                let step = (direction.0 .0 + elf.0, direction.0 .1 + elf.1);
 
                 proposed
                     .entry(step)
