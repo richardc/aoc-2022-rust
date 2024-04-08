@@ -140,16 +140,28 @@ impl Maze {
         .collect_vec()
     }
 
-    fn shortest_path(&self) -> usize {
-        let start = (0, 1);
-        let goal = (self.rows - 1, self.columns - 2);
+    fn pathfind(&self, start: State, goal: (isize, isize)) -> usize {
         let (_path, cost) = dijkstra(
-            &(start, 0),
+            &start,
             |&(position, time)| self.neighbours(position, time),
             |&(position, _)| position == goal,
         )
         .expect("to find a path");
-        cost
+        start.1 as usize + cost
+    }
+
+    fn shortest_path(&self) -> usize {
+        let start = (0, 1);
+        let goal = (self.rows - 1, self.columns - 2);
+        self.pathfind((start, 0), goal)
+    }
+
+    fn out_in_out(&self) -> usize {
+        let start = (0, 1);
+        let goal = (self.rows - 1, self.columns - 2);
+        let out = self.pathfind((start, 0), goal);
+        let back = self.pathfind((goal, out as isize), start);
+        self.pathfind((start, back as isize), goal)
     }
 }
 
@@ -158,9 +170,9 @@ pub fn part_one(input: &str) -> Option<usize> {
     Some(maze.shortest_path())
 }
 
-pub fn part_two(input: &str) -> Option<u32> {
-    _ = input;
-    None
+pub fn part_two(input: &str) -> Option<usize> {
+    let maze = Maze::new(input);
+    Some(maze.out_in_out())
 }
 
 #[cfg(test)]
@@ -270,6 +282,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(54));
     }
 }
