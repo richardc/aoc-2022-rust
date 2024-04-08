@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::fmt::Display;
 
 advent_of_code::solution!(17);
 
@@ -19,7 +18,7 @@ const ROCKS: [u32; 5] = [
     ((0b00100000 << 24) +
      (0b00100000 << 16) +
      (0b00100000 << 8) +
-     0b00100000),
+      0b00100000),
     // Square
     ((0b00110000 << 8) +
       0b00110000),
@@ -37,7 +36,8 @@ struct Well {
     height: usize,
 }
 
-impl Display for Well {
+#[cfg(feature = "demo")]
+impl std::fmt::Display for Well {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         for y in (0..self.well.len()).rev() {
             let well = self.well[y];
@@ -160,8 +160,8 @@ impl Well {
     }
 }
 
-#[allow(dead_code)]
-fn printy_drop_blocks(input: &str, count: usize) -> Well {
+#[cfg(feature = "demo")]
+fn drop_blocks(input: &str, count: usize) -> Well {
     let mut well = Well::new(input);
     let mut last = well.rocks_placed;
     println!("{}", well);
@@ -175,6 +175,7 @@ fn printy_drop_blocks(input: &str, count: usize) -> Well {
     well
 }
 
+#[cfg(not(feature = "demo"))]
 fn drop_blocks(input: &str, count: usize) -> Well {
     let mut well = Well::new(input);
     while well.rocks_placed < count {

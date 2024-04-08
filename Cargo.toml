@@ -18,6 +18,7 @@ debug = 1
 dhat-heap = ["dhat"]
 today = ["chrono"]
 test_lib = []
+demo = []
 
 [dependencies]
 

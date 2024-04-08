@@ -4,6 +4,7 @@ scaffold = "run --quiet --release -- scaffold"
 download = "run --quiet --release -- download"
 read = "run --quiet --release -- read"
 
+demo = "run --quiet --release --features demo --bin"
 solve = "run --quiet --release -- solve"
 all = "run --quiet --release -- all"
 time = "run --quiet --release -- time"
