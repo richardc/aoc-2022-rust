@@ -1,20 +1,17 @@
 advent_of_code::solution!(25, 1);
 
 fn from_snafu(input: &str) -> i64 {
-    let mut accum = 0;
-    for (i, b) in input.as_bytes().iter().rev().enumerate() {
-        accum += 5_i64.pow(i as u32)
-            * match b {
+    input.as_bytes().iter().fold(0, |acc, b| {
+        acc * 5
+            + match b {
                 b'2' => 2,
                 b'1' => 1,
                 b'0' => 0,
                 b'-' => -1,
                 b'=' => -2,
                 _ => unreachable!("not a snafu digit"),
-            };
-    }
-
-    accum
+            }
+    })
 }
 
 fn to_snafu(mut input: i64) -> String {
